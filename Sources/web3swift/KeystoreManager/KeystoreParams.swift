@@ -43,7 +43,7 @@ public struct KeystoreParamsBIP32: AbstractKeystoreParams {
     public var crypto: CryptoParamsV3
     public var id: String?
     public var version: Int
-    public var isHDWallet: Bool = false
+    public var isHDWallet: Bool?
 
     var pathToAddress: [String: String]
     var rootPath: String?
@@ -64,7 +64,7 @@ public struct KeystoreParamsV3: AbstractKeystoreParams {
     public var crypto: CryptoParamsV3
     public var id: String?
     public var version: Int
-    public var isHDWallet: Bool = false
+    public var isHDWallet: Bool?
 
     var address: String?
 

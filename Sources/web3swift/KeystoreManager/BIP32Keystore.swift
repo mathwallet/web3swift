@@ -81,9 +81,6 @@ public class BIP32Keystore: AbstractKeystore {
         if (keystorePars.crypto.version != nil && keystorePars.crypto.version != "1") {
             return nil
         }
-        if (!keystorePars.isHDWallet) {
-            return nil
-        }
         for (p, ad) in keystorePars.pathToAddress {
             paths[p] = EthereumAddress(ad)
         }
