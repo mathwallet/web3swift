@@ -43,8 +43,7 @@ public class EthereumKeystoreV3: AbstractKeystore {
     // --------------
 
     public convenience init?(_ jsonString: String) {
-        let lowercaseJSON = jsonString.lowercased()
-        guard let jsonData = lowercaseJSON.data(using: .utf8) else {
+        guard let jsonData = jsonString.data(using: .utf8) else {
             return nil
         }
         self.init(jsonData)
