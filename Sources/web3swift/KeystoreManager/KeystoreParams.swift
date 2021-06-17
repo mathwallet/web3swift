@@ -73,7 +73,6 @@ public struct KeystoreParamsV3: AbstractKeystoreParams {
         self.crypto = cr
         self.id = i
         self.version = ver
-        self.isHDWallet = false
     }
 
 }

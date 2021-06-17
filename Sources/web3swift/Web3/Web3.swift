@@ -58,6 +58,13 @@ public struct Web3 {
         return web3(provider: provider)
     }
     
+    public static func new(_ providerURL: URL, networkId: BigUInt) throws -> web3 {
+        guard let provider = Web3HttpProvider(providerURL, network: Networks.Custom(networkID: networkId)) else {
+            throw Web3Error.inputError(desc: "Wrong provider - should be Web3HttpProvider with endpoint scheme http or https")
+        }
+        return web3(provider: provider)
+    }
+    
     /// Initialized Web3 instance bound to Infura's mainnet provider.
     public static func InfuraMainnetWeb3(accessToken: String? = nil) -> web3 {
         let infura = InfuraProvider(Networks.Mainnet, accessToken: accessToken)!
