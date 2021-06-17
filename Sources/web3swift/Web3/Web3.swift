@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import BigInt
 
 public enum Web3Error: Error {
     case transactionSerializationError
