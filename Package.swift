@@ -12,7 +12,7 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/attaswift/BigInt.git", from: "5.0.0"),
     .package(url: "https://github.com/mxcl/PromiseKit.git", from: "6.8.4"),
-    .package(url: "https://github.com/daltoniam/Starscream.git", from: "3.1.0"),
+    .package(url: "https://github.com/daltoniam/Starscream.git", from: "3.1.1"),
     .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.0.0"),
     .package(url: "https://github.com/tesseract-one/CSecp256k1.swift", from: "0.1.0"),
     ],
