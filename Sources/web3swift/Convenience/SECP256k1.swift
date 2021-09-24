@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import CSecp256k1
+import Secp256k1Swift
 
 public struct SECP256K1 {
     public struct UnmarshaledSignature{

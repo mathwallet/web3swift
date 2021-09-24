@@ -6,6 +6,7 @@
 
 import XCTest
 import CryptoSwift
+import BIP39swift
 
 @testable import web3swift
 

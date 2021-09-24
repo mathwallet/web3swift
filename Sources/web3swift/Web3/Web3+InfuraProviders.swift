@@ -242,34 +242,39 @@ public final class InfuraWebsocketProvider: WebsocketProvider {
         try writeMessage(method: method, params: params)
     }
     
-    override public func websocketDidReceiveMessage(socket: WebSocketClient, text: String) {
-        if let data = text.data(using: String.Encoding.utf8),
-            let dictionary = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-            if filterID == nil,
-                let result = dictionary["result"] as? String {
-                // setting filter id
-                filterID = result
-            } else if let params = dictionary["params"] as? [String: Any],
-                let subscription = params["subscription"] as? String,
-                let result = params["result"] {
-                // subscription result
-                subscriptionIDs.insert(subscription)
-                delegate.received(message: result)
-            } else if let unsubscribed = dictionary["result"] as? Bool {
-                // unsubsribe result
-                if unsubscribed == true, let id = subscriptionIDforUnsubscribing {
-                    subscriptionIDs.remove(id)
-                } else if let id = subscriptionIDforUnsubscribing {
-                    delegate.gotError(error: Web3Error.processingError(desc: "Can\'t unsubscribe \(id)"))
+    override public func didReceive(event: WebSocketEvent, client: WebSocket) {
+        switch event {
+        case .text(let text):
+            if let data = text.data(using: String.Encoding.utf8),
+                let dictionary = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                if filterID == nil,
+                    let result = dictionary["result"] as? String {
+                    // setting filter id
+                    filterID = result
+                } else if let params = dictionary["params"] as? [String: Any],
+                    let subscription = params["subscription"] as? String,
+                    let result = params["result"] {
+                    // subscription result
+                    subscriptionIDs.insert(subscription)
+                    delegate.received(message: result)
+                } else if let unsubscribed = dictionary["result"] as? Bool {
+                    // unsubsribe result
+                    if unsubscribed == true, let id = subscriptionIDforUnsubscribing {
+                        subscriptionIDs.remove(id)
+                    } else if let id = subscriptionIDforUnsubscribing {
+                        delegate.gotError(error: Web3Error.processingError(desc: "Can\'t unsubscribe \(id)"))
+                    } else {
+                        delegate.received(message: unsubscribed)
+                    }
+                } else if let message = dictionary["result"] {
+                    // filter result
+                    delegate.received(message: message)
                 } else {
-                    delegate.received(message: unsubscribed)
+                    delegate.gotError(error: Web3Error.processingError(desc: "Can\'t get known result. Message is: \(text)"))
                 }
-            } else if let message = dictionary["result"] {
-                // filter result
-                delegate.received(message: message)
-            } else {
-                delegate.gotError(error: Web3Error.processingError(desc: "Can\'t get known result. Message is: \(text)"))
             }
+        default:
+            super.didReceive(event: event, client: client)
         }
     }
 }

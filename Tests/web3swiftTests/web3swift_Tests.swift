@@ -143,5 +143,10 @@ class web3swift_Tests: XCTestCase {
         }
     }
     
+    func testBase58Examples() {
+        
+        debugPrint(Data(fromArray: Base58.bytesFromBase58("94VCjK11Dhq")).toHexString())
+    }
+    
 }
 
