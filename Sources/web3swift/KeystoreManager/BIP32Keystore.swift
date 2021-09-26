@@ -8,6 +8,7 @@ import Foundation
 import CryptoSwift
 import Foundation
 import BIP39swift
+import BIP32Swift
 
 public class BIP32Keystore: AbstractKeystore {
 

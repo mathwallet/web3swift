@@ -7,8 +7,7 @@
 import XCTest
 import CryptoSwift
 import BigInt
-//import secp256k1_swift
-//import EthereumAddress
+import Secp256k1Swift
 
 @testable import web3swift
 

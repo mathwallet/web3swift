@@ -5,7 +5,7 @@
 //
 
 import Foundation
-//import secp256k1_swift
+import Secp256k1Swift
 
 //import EthereumAddress
 

@@ -7,9 +7,7 @@
 import Foundation
 import BigInt
 import CryptoSwift
-//import SwiftRLP
-//import secp256k1_swift
-//import EthereumAddress
+import Secp256k1Swift
 
 public typealias Web3Utils = Web3.Utils
 
