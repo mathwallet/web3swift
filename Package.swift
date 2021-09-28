@@ -22,7 +22,7 @@ let package = Package(
   targets: [
     .target(
       name: "web3swift",
-      dependencies: ["BigInt", "PromiseKit", "Starscream", "Secp256k1Swift", .product(name: "BIP32Swift", package: "Secp256k1Swift"), "BIP32Swift", "BIP39swift"],
+      dependencies: ["BigInt", "PromiseKit", "Starscream", "Secp256k1Swift", .product(name: "BIP32Swift", package: "Secp256k1Swift"), "BIP39swift"],
       exclude: []),
     .testTarget(
       name: "web3swiftTests",
