@@ -102,6 +102,7 @@ public class WebsocketProvider: Web3Provider, IWebsocketProvider, WebSocketDeleg
     
     public var network: Networks?
     public var url: URL
+    public var isSupportedBatch: Bool = true
     public var session: URLSession = {() -> URLSession in
         let config = URLSessionConfiguration.default
         let urlSession = URLSession(configuration: config)
