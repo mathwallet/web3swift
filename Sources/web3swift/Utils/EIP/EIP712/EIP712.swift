@@ -8,26 +8,6 @@ import BigInt
 import CryptoSwift
 import Foundation
 
-public struct EIP712Domain: EIP712DomainHashable {
-    public let chainId:            EIP712.UInt256?
-    public let verifyingContract:  EIP712.Address
-}
-
-protocol EIP712DomainHashable: EIP712Hashable {}
-
-public struct SafeTx: EIP712Hashable {
-    let to:             EIP712.Address
-    let value:          EIP712.UInt256
-    let data:           EIP712.Bytes
-    let operation:      EIP712.UInt8
-    let safeTxGas:      EIP712.UInt256
-    let baseGas:        EIP712.UInt256
-    let gasPrice:       EIP712.UInt256
-    let gasToken:       EIP712.Address
-    let refundReceiver: EIP712.Address
-    let nonce:          EIP712.UInt256
-}
-
 /// Protocol defines EIP712 struct encoding
 public protocol EIP712Hashable {
     var typehash: Data { get }
@@ -35,12 +15,22 @@ public protocol EIP712Hashable {
 }
 
 public class EIP712 {
-    public typealias Address = EthereumAddress
+    public struct Bytes32 {
+        public var data: Data
+        public init(data: Data) {
+            self.data = data
+        }
+    }
     public typealias UInt256 = BigUInt
-    public typealias UInt8 = Swift.UInt8
+    public typealias Address = EthereumAddress
     public typealias Bytes = Data
+    
+    // Encode functions
+    public static func eip712encode(domainSeparator: EIP712Hashable, message: EIP712Hashable) throws -> Data {
+        let data = try Data([UInt8(0x19), UInt8(0x01)]) + domainSeparator.hash() + message.hash()
+        return EIP712Crypto.keccak256(data)
+    }
 }
-
 public extension EIP712.Address {
     static var zero: Self {
         EthereumAddress(Data(count: 20))!
@@ -48,7 +38,7 @@ public extension EIP712.Address {
 }
 
 public extension EIP712Hashable {
-    private var name: String {
+    private var _typeName: String {
         let fullName = "\(Self.self)"
         let name = fullName.components(separatedBy: ".").last ?? fullName
         return name
@@ -80,16 +70,16 @@ public extension EIP712Hashable {
             
             let typeName: String
             switch value {
-            case is EIP712.UInt8: typeName = "uint8"
             case is EIP712.UInt256: typeName = "uint256"
             case is EIP712.Address: typeName = "address"
+            case is EIP712.Bytes32: typeName = "bytes32"
             case is EIP712.Bytes: typeName = "bytes"
-            case let hashable as EIP712Hashable: typeName = hashable.name
+            case let hashable as EIP712Hashable: typeName = hashable._typeName
             default: typeName = "\(type(of: value))".lowercased()
             }
             return typeName + " " + key
         }
-        return self.name + "(" + parametrs.joined(separator: ",") + ")"
+        return self._typeName + "(" + parametrs.joined(separator: ",") + ")"
     }
     
     func encodeType() -> String {
@@ -103,7 +93,7 @@ public extension EIP712Hashable {
     // MARK: - Default implementation
     
     var typehash: Data {
-        keccak256(encodeType())
+        EIP712Crypto.keccak256(encodeType())
     }
     
     func hash() throws -> Data {
@@ -112,16 +102,34 @@ public extension EIP712Hashable {
         for case let (_, field) in Mirror(reflecting: self).children {
             let result: Data
             switch field {
-            case let string as String:
-                result = keccak256(string)
-            case let data as EIP712.Bytes:
-                result = keccak256(data)
-            case is EIP712.UInt8:
+            case is Bool:
+                result = ABIEncoder.encodeSingleType(type: .bool, value: field as AnyObject)!
+            case is Int8:
+                result = ABIEncoder.encodeSingleType(type: .int(bits: 8), value: field as AnyObject)!
+            case is Int16:
+                result = ABIEncoder.encodeSingleType(type: .int(bits: 16), value: field as AnyObject)!
+            case is Int32:
+                result = ABIEncoder.encodeSingleType(type: .int(bits: 32), value: field as AnyObject)!
+            case is Int64:
+                result = ABIEncoder.encodeSingleType(type: .int(bits: 64), value: field as AnyObject)!
+            case is UInt8:
                 result = ABIEncoder.encodeSingleType(type: .uint(bits: 8), value: field as AnyObject)!
+            case is UInt16:
+                result = ABIEncoder.encodeSingleType(type: .uint(bits: 16), value: field as AnyObject)!
+            case is UInt32:
+                result = ABIEncoder.encodeSingleType(type: .uint(bits: 32), value: field as AnyObject)!
+            case is UInt64:
+                result = ABIEncoder.encodeSingleType(type: .uint(bits: 64), value: field as AnyObject)!
             case is EIP712.UInt256:
                 result = ABIEncoder.encodeSingleType(type: .uint(bits: 256), value: field as AnyObject)!
             case is EIP712.Address:
                 result = ABIEncoder.encodeSingleType(type: .address, value: field as AnyObject)!
+            case let bytes32 as EIP712.Bytes32:
+                result = bytes32.data
+            case let data as EIP712.Bytes:
+                result = EIP712Crypto.keccak256(data)
+            case let string as String:
+                result = EIP712Crypto.keccak256(string)
             case let hashable as EIP712Hashable:
                 result = try hashable.hash()
             default:
@@ -135,25 +143,21 @@ public extension EIP712Hashable {
             parametrs.append(result)
         }
         let encoded = parametrs.flatMap { $0.bytes }
-        return keccak256(encoded)
+        return EIP712Crypto.keccak256(encoded)
     }
 }
 
-// Encode functions
-public func eip712encode(domainSeparator: EIP712Hashable, message: EIP712Hashable) throws -> Data {
-    let data = try Data([UInt8(0x19), UInt8(0x01)]) + domainSeparator.hash() + message.hash()
-    return keccak256(data)
-}
+struct EIP712Crypto {
+    // MARK: - keccak256
+    static func keccak256(_ data: [UInt8]) -> Data {
+        Data(SHA3(variant: .keccak256).calculate(for: data))
+    }
 
-// MARK: - keccak256
-private func keccak256(_ data: [UInt8]) -> Data {
-    Data(SHA3(variant: .keccak256).calculate(for: data))
-}
+    static func keccak256(_ string: String) -> Data {
+        keccak256(Array(string.utf8))
+    }
 
-private func keccak256(_ string: String) -> Data {
-    keccak256(Array(string.utf8))
-}
-
-private func keccak256(_ data: Data) -> Data {
-    keccak256(data.bytes)
+    static func keccak256(_ data: Data) -> Data {
+        keccak256(data.bytes)
+    }
 }
