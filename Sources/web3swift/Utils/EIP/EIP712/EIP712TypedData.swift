@@ -12,48 +12,80 @@ import Foundation
 /*
  {
      "types": {
-         "Vote": [{
-             "name": "from",
-             "type": "address"
-         }, {
-             "name": "space",
-             "type": "string"
-         }, {
-             "name": "timestamp",
-             "type": "uint64"
-         }, {
-             "name": "proposal",
-             "type": "bytes32"
-         }, {
-             "name": "choice",
-             "type": "uint32"
-         }, {
-             "name": "metadata",
-             "type": "string"
-         }],
          "EIP712Domain": [{
              "name": "name",
              "type": "string"
          }, {
              "name": "version",
              "type": "string"
+         }, {
+             "name": "verifyingContract",
+             "type": "address"
+         }],
+         "RelayRequest": [{
+             "name": "target",
+             "type": "address"
+         }, {
+             "name": "encodedFunction",
+             "type": "bytes"
+         }, {
+             "name": "gasData",
+             "type": "GasData"
+         }, {
+             "name": "relayData",
+             "type": "RelayData"
+         }],
+         "GasData": [{
+             "name": "gasLimit",
+             "type": "uint256"
+         }, {
+             "name": "gasPrice",
+             "type": "uint256"
+         }, {
+             "name": "pctRelayFee",
+             "type": "uint256"
+         }, {
+             "name": "baseRelayFee",
+             "type": "uint256"
+         }],
+         "RelayData": [{
+             "name": "senderAddress",
+             "type": "address"
+         }, {
+             "name": "senderNonce",
+             "type": "uint256"
+         }, {
+             "name": "relayWorker",
+             "type": "address"
+         }, {
+             "name": "paymaster",
+             "type": "address"
          }]
      },
      "domain": {
-         "name": "snapshot",
-         "version": "0.1.4"
+         "name": "GSN Relayed Transaction",
+         "version": "1",
+         "chainId": 42,
+         "verifyingContract": "0x6453D37248Ab2C16eBd1A8f782a2CBC65860E60B"
      },
-     "primaryType": "Vote",
+     "primaryType": "RelayRequest",
      "message": {
-         "from": "0x306bb8081c7dd356ea951795ce4072e6e4bfdc32",
-         "space": "pancake",
-         "timestamp": "1642060678",
-         "proposal": "0x08706912b77cef36d6da1ba408a11590a8a8fb79b50d4b9212599e13947fedb1",
-         "choice": "1",
-         "metadata": "{}"
+         "target": "0x9cf40ef3d1622efe270fe6fe720585b4be4eeeff",
+         "encodedFunction": "0xa9059cbb0000000000000000000000002e0d94754b348d208d64d52d78bcd443afa9fa520000000000000000000000000000000000000000000000000000000000000007",
+         "gasData": {
+             "gasLimit": "39507",
+             "gasPrice": "1700000000",
+             "pctRelayFee": "70",
+             "baseRelayFee": "0"
+         },
+         "relayData": {
+             "senderAddress": "0x22d491bde2303f2f43325b2108d26f1eaba1e32b",
+             "senderNonce": "3",
+             "relayWorker": "0x3baee457ad824c94bd3953183d725847d023a2cf",
+             "paymaster": "0x957F270d45e9Ceca5c5af2b49f1b5dC1Abb0421c"
+         }
      }
  }
-    //hash -> 0x40122d8c04cce1df24d222717b8d7d1cb3537c79fa1a83790659df8e29becc27
  */
 
 /// A struct represents EIP712 type tuple
@@ -78,11 +110,19 @@ public extension EIP712TypedData {
         return EIP712Crypto.keccak256(data)
     }
     
-    private func dependencies() -> [String] {
-        return []
+    private func dependencies(_ type: String, dependencies: [String] = []) -> [String] {
+        var found = dependencies
+        guard !found.contains(type), let primaryTypes = self.types[type] else {
+            return found
+        }
+        found.append(type)
+        for type in primaryTypes {
+            self.dependencies(type.type, dependencies: found).forEach { found.append($0) }
+        }
+        return found
     }
     
-    func encodePrimaryType(_ type: String) -> String {
+    private func encodePrimaryType(_ type: String) -> String {
         guard let valueTypes = self.types[type] else { return type + "()" }
         
         let parametrs: [String] = valueTypes.compactMap { valueType in
@@ -91,8 +131,8 @@ public extension EIP712TypedData {
         return type + "(" + parametrs.joined(separator: ",") + ")"
     }
     
-    private func encodeType(_ type: String) -> String {
-        let dependencies = self.dependencies()
+    func encodeType(_ type: String) -> String {
+        let dependencies = self.dependencies(type).map{ self.encodePrimaryType($0) }
         let selfPrimaryType = self.encodePrimaryType(type)
         
         let result = Set(dependencies).filter { $0 != selfPrimaryType }
@@ -108,9 +148,11 @@ public extension EIP712TypedData {
         let valueTypes = self.types[type] ?? []
         var parametrs: [Data] = [self.typehash(type)]
         for valueType in valueTypes {
-            let field = json[valueType.name]!
-            let abiType: ABI.Element.ParameterType
-            let abiValue: AnyObject
+            guard let field = json[valueType.name] else {
+                continue
+            }
+            var abiType: ABI.Element.ParameterType?
+            var abiValue: AnyObject?
             switch valueType.type {
             case "bool":
                 abiType = .bool
@@ -172,15 +214,29 @@ public extension EIP712TypedData {
                 abiType = .bytes(length: 32)
                 abiValue = EIP712Crypto.keccak256(v) as AnyObject
             default:
-                if (field as AnyObject) is NSNull {
-                    continue
-                } else {
-                    preconditionFailure("Not solidity type")
+                guard case .object(let value) = json,
+                      let key = value.keys.filter({ $0.lowercased() == valueType.type.lowercased() }).first else {
+                    throw Web3Error.processingError(desc: "Not solidity type")
+                }
+                guard let obj = json[key] else {
+                    throw Web3Error.processingError(desc: "Not solidity type \(valueType.type)")
+                }
+                switch obj {
+                case .object(let dictionary):
+                    debugPrint(dictionary)
+                    abiType = .bytes(length: 32)
+                    abiValue = try self.hash(valueType.type, json: obj) as AnyObject
+                default:
+                    throw Web3Error.processingError(desc: "Not solidity type")
                 }
             }
             
-            guard let result = ABIEncoder.encodeSingleType(type: abiType, value: abiValue),
-                    result.count == 32 else { preconditionFailure("ABI encode error") }
+            guard let _abiType = abiType,
+                  let _abiValue = abiValue,
+                  let result = ABIEncoder.encodeSingleType(type: _abiType, value: _abiValue),
+                  result.count == 32 else {
+                throw Web3Error.processingError(desc: "ABI encode error")
+            }
             parametrs.append(result)
         }
         let encoded = parametrs.flatMap { $0.bytes }
