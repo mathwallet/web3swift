@@ -73,8 +73,8 @@ public struct EIP712TypedData: Codable {
 
 public extension EIP712TypedData {
     /// Sign-able hash for an `EIP712TypedData`
-    var digest: Data {
-        let data = Data([0x19, 0x01]) + (try! self.hash("EIP712Domain", json: domain)) + (try! self.hash(self.primaryType, json: message))
+    func digestData() throws -> Data {
+        let data = Data([0x19, 0x01]) + (try self.hash("EIP712Domain", json: domain)) + (try self.hash(self.primaryType, json: message))
         return EIP712Crypto.keccak256(data)
     }
     
@@ -94,7 +94,6 @@ public extension EIP712TypedData {
     private func encodeType(_ type: String) -> String {
         let dependencies = self.dependencies()
         let selfPrimaryType = self.encodePrimaryType(type)
-        debugPrint(selfPrimaryType)
         
         let result = Set(dependencies).filter { $0 != selfPrimaryType }
         return selfPrimaryType + result.sorted().joined()

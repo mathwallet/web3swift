@@ -85,7 +85,8 @@ class web3swift_EIP712_Tests: XCTestCase {
     
     func testEIP712TypedDataExamples() throws {
         let jsonString = "{\"types\":{\"Vote\":[{\"name\":\"from\",\"type\":\"address\"},{\"name\":\"space\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":\"uint64\"},{\"name\":\"proposal\",\"type\":\"bytes32\"},{\"name\":\"choice\",\"type\":\"uint32\"},{\"name\":\"metadata\",\"type\":\"string\"}],\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"}]},\"domain\":{\"name\":\"snapshot\",\"version\":\"0.1.4\"},\"primaryType\":\"Vote\",\"message\":{\"from\":\"0x306bb8081c7dd356ea951795ce4072e6e4bfdc32\",\"space\":\"pancake\",\"timestamp\":\"1642060678\",\"proposal\":\"0x08706912b77cef36d6da1ba408a11590a8a8fb79b50d4b9212599e13947fedb1\",\"choice\":\"1\",\"metadata\":\"{}\"}}"
-        let data = try JSONDecoder().decode(EIP712TypedData.self, from: jsonString.data(using: .utf8)!)
-        debugPrint(data.digest.toHexString())
+        let typedData = try JSONDecoder().decode(EIP712TypedData.self, from: jsonString.data(using: .utf8)!)
+        let digestData = try typedData.digestData()
+        debugPrint(digestData.toHexString())
     }
 }
