@@ -1,5 +1,5 @@
 //  web3swift
-//
+//  https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
 //  Created by Forrest.
 //  Copyright © 2022 MATH. All rights reserved.
 //
