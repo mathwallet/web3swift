@@ -7,7 +7,7 @@
 import Foundation
 import BigInt
 
-public enum Web3Error: Error {
+public enum Web3Error: LocalizedError {
     case transactionSerializationError
     case connectionError
     case dataError
