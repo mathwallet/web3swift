@@ -19,7 +19,7 @@ public enum Web3Error: LocalizedError {
     case generalError(err:Error)
     case unknownError
     
-    public var errorDescription: String {
+    public var errorDescription: String? {
         switch self {
             
         case .transactionSerializationError:
