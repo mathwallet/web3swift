@@ -49,10 +49,10 @@ public struct EthereumTransaction: CustomStringConvertible {
         var encoded: Data
         let inferedChainID = self.inferedChainID
         if inferedChainID != nil {
-            guard let enc = self.self.encode(forSignature: false, chainID: inferedChainID) else {return nil}
+            guard let enc = self.encode(forSignature: false, chainID: inferedChainID) else {return nil}
             encoded = enc
         } else {
-            guard let enc = self.self.encode(forSignature: false, chainID: self.chainID) else {return nil}
+            guard let enc = self.encode(forSignature: false, chainID: self.chainID) else {return nil}
             encoded = enc
         }
         let hash = encoded.sha3(.keccak256)
@@ -102,6 +102,7 @@ public struct EthereumTransaction: CustomStringConvertible {
         }
         
     }
+    
     public var sender: EthereumAddress? {
         get {
             guard let publicKey = self.recoverPublicKey() else {return nil}

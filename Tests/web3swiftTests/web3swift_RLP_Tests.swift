@@ -16,4 +16,10 @@ class web3swift_RLP_Tests: XCTestCase {
         let transaction = EthereumTransaction.fromRaw(input)
         print(transaction!)
     }
+    func testRLPdecodeTransaction1559() {
+        let input = Data.fromHex("0x02f86d018201d98459682f00851b50d4af7782520894306bb8081c7dd356ea951795ce4072e6e4bfdc328080c080a0910efa2360e22e35fcd8e9e1b18d051b35674a40bd493e21f2cd6c6b0b5a6475a021037ebab4b0b0c9db9de00df7d7f3ac6002dad92df17e6412b46b5a92d995c7")!
+        let transaction = EthereumEIP1559Transaction.fromRaw(input)
+        print(transaction!)
+    }
+    
 }

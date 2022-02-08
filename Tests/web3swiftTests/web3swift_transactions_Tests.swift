@@ -36,6 +36,28 @@ class web3swift_transactions_Tests: XCTestCase {
             print(transaction)
             XCTAssert(transaction.v == UInt8(37), "Transaction signature failed")
             XCTAssert(sender == transaction.sender)
+            print(transaction.encode()!.toHexString())
+        }
+        catch {
+            print(error)
+            XCTFail()
+        }
+    }
+    
+    func testTransactionEIP1559() {
+        do {
+            var transaction = EthereumEIP1559Transaction(maxPriorityFeePerGas: BigUInt("59682f00", radix: 16)!, maxFeePerGas: BigUInt("1b50d4af77", radix: 16)!, gasLimit: BigUInt("5208", radix: 16)!, to: EthereumAddress("0x306bb8081c7dd356ea951795ce4072e6e4bfdc32")!, value: BigUInt(0), data: Data(), chainID: BigUInt(1))
+            transaction.nonce = BigUInt(473)
+            
+            let privateKeyData = Data.fromHex("0x4646464646464646464646464646464646464646464646464646464646464646")!
+            let publicKey = Web3.Utils.privateToPublic(privateKeyData, compressed: false)
+            let sender = Web3.Utils.publicToAddress(publicKey!)
+            
+            try Web3Signer.EIP1559Signer.sign(transaction: &transaction, privateKey: privateKeyData, useExtraEntropy: false)
+            print(transaction)
+            XCTAssert(transaction.v == UInt8(0), "Transaction signature failed")
+            XCTAssert(sender == transaction.sender)
+            print(transaction.encode()!.toHexString())
         }
         catch {
             print(error)
