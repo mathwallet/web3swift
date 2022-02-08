@@ -9,12 +9,12 @@ import BigInt
 import PromiseKit
 
 extension web3.Eth {
-    public func getFeeHistoryPromise(blockCount: Int, lastBlock: String = "latest", rewardPercentiles: [BigUInt] = []) -> Promise<FeeHistoryResult> {
-        let request = JSONRPCRequestFabric.prepareRequest(.feeHistory, parameters: [blockCount, lastBlock, rewardPercentiles.map{ String($0, radix: 16)}])
+    public func maxPriorityFeePerGasPromise() -> Promise<BigUInt> {
+        let request = JSONRPCRequestFabric.prepareRequest(.maxPriorityFeePerGas, parameters: [])
         let rp = web3.dispatch(request)
         let queue = web3.requestDispatcher.queue
         return rp.map(on: queue ) { response in
-            guard let value: FeeHistoryResult = response.getValue() else {
+            guard let value: BigUInt = response.getValue() else {
                 if response.error != nil {
                     throw Web3Error.nodeError(desc: response.error!.message)
                 }

@@ -77,4 +77,11 @@ class web3swift_infura_Tests: XCTestCase {
         print(result)
     }
     
+    
+    func testMaxPriorityFeePerGas() throws {
+        let web3 = Web3.InfuraMainnetWeb3()
+        let result = try web3.eth.maxPriorityFeePerGas()
+        print(result)
+    }
+    
 }

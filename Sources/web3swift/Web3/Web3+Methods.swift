@@ -15,6 +15,7 @@ public enum JSONRPCmethod: String, Encodable {
     case sendTransaction = "eth_sendTransaction"
     case estimateGas = "eth_estimateGas"
     case feeHistory = "eth_feeHistory"
+    case maxPriorityFeePerGas = "eth_maxPriorityFeePerGas"
     case call = "eth_call"
     case getTransactionCount = "eth_getTransactionCount"
     case getBalance = "eth_getBalance"
@@ -55,6 +56,8 @@ public enum JSONRPCmethod: String, Encodable {
                 return 0
             case .feeHistory:
                 return 3
+            case .maxPriorityFeePerGas:
+                return 0
             case .blockNumber:
                 return 0
             case .getNetwork:
