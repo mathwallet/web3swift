@@ -69,6 +69,12 @@ class web3swift_infura_Tests: XCTestCase {
         let response = try web3.eth.getGasPrice()
         print(response)
     }
-
+    
+    
+    func testGetFeeHistory() throws {
+        let web3 = Web3.InfuraMainnetWeb3()
+        let result = try web3.eth.getFeeHistory(blockCount: 4)
+        print(result)
+    }
     
 }

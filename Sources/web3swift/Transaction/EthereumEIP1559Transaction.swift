@@ -10,7 +10,7 @@ import BigInt
 import Secp256k1Swift
 
 public struct EthereumEIP1559Transaction: CustomStringConvertible {
-    private var type: UInt8 = 0x02
+    public static let type: UInt8 = 0x02
     public var nonce: BigUInt
     public var maxPriorityFeePerGas: BigUInt = BigUInt(0)
     public var maxFeePerGas: BigUInt = BigUInt(0)
@@ -61,7 +61,7 @@ public struct EthereumEIP1559Transaction: CustomStringConvertible {
         get {
             var toReturn = ""
             toReturn = toReturn + "Transaction" + "\n"
-            toReturn = toReturn + "Type: " + String(self.type) + "\n"
+            toReturn = toReturn + "Type: " + String(EthereumEIP1559Transaction.type) + "\n"
             toReturn = toReturn + "Nonce: " + String(self.nonce) + "\n"
             toReturn = toReturn + "MaxPriorityFeePerGas: " + String(self.maxPriorityFeePerGas) + "\n"
             toReturn = toReturn + "maxFeePerGas: " + String(self.maxFeePerGas) + "\n"
@@ -104,11 +104,11 @@ public struct EthereumEIP1559Transaction: CustomStringConvertible {
         if (forSignature) {
             let fields = [self.chainID, self.nonce, self.maxPriorityFeePerGas, self.maxFeePerGas, self.gasLimit, self.to.addressData, self.value!, self.data, self.accessList] as [AnyObject]
             guard let encode = RLP.encode(fields) else { return nil }
-            return Data([self.type]) + encode
+            return Data([EthereumEIP1559Transaction.type]) + encode
         } else {
             let fields = [self.chainID, self.nonce, self.maxPriorityFeePerGas, self.maxFeePerGas, self.gasLimit, self.to.addressData, self.value!, self.data, self.accessList, self.v, self.r, self.s] as [AnyObject]
             guard let encode = RLP.encode(fields) else { return nil }
-            return Data([self.type]) + encode
+            return Data([EthereumEIP1559Transaction.type]) + encode
         }
     }
     
@@ -119,7 +119,7 @@ public struct EthereumEIP1559Transaction: CustomStringConvertible {
     }
     
     public static func fromRaw(_ raw: Data) -> EthereumEIP1559Transaction? {
-        guard raw.count > 0, raw.prefix(1) == Data([0x02]) else {return nil}
+        guard raw.count > 0, raw.prefix(1) == Data([EthereumEIP1559Transaction.type]) else {return nil}
         guard let totalItem = RLP.decode(raw.subdata(in: 1 ..< raw.count)) else {return nil}
         guard let rlpItem = totalItem[0] else {return nil}
         switch rlpItem.count {

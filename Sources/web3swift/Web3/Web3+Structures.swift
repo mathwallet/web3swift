@@ -562,6 +562,40 @@ public struct Block:Decodable {
     }
 }
 
+
+public struct FeeHistoryResult: Decodable {
+    public var baseFeePerGas: [BigUInt]
+    public var gasUsedRatio: [Decimal]
+    public var oldestBlock: BigUInt
+    
+    enum CodingKeys: String, CodingKey
+    {
+        case baseFeePerGas
+        case gasUsedRatio
+        case oldestBlock
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        guard let oldestBlock = try decodeHexToBigUInt(container, key: .oldestBlock) else {throw Web3Error.dataError}
+        self.oldestBlock = oldestBlock
+        
+        let baseFeePerGasStrings = try container.decode([String].self, forKey: .baseFeePerGas)
+        var baseFeePerGasArray = [BigUInt]()
+        for baseFeePerGasString in baseFeePerGasStrings {
+            if let _baseFeePerGas = BigUInt(baseFeePerGasString.stripHexPrefix(), radix: 16) {
+                baseFeePerGasArray.append(_baseFeePerGas)
+            }
+        }
+        self.baseFeePerGas = baseFeePerGasArray
+        
+        let gasUsedRatios = try container.decode([Decimal].self, forKey: .gasUsedRatio)
+        self.gasUsedRatio = gasUsedRatios
+    }
+    
+}
+
 public struct EventParserResult:EventParserResultProtocol {
     public var eventName: String
     public var transactionReceipt: TransactionReceipt?

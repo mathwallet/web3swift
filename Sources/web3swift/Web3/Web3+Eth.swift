@@ -106,6 +106,16 @@ extension web3.Eth {
         return result
     }
     
+    /// Returns a current feeHistory
+    ///
+    /// This function is synchronous!
+    ///
+    /// Returns the Result object that indicates either success of failure.
+    public func getFeeHistory(blockCount: Int, onBlock: String = "latest", rewardPercentiles: [BigUInt] = []) throws -> FeeHistoryResult {
+        let result = try self.getFeeHistoryPromise(blockCount: blockCount, onBlock: onBlock, rewardPercentiles: rewardPercentiles).wait()
+        return result
+    }
+    
     /// Returns transaction details for particular transaction hash. Details indicate position of the transaction in a particular block,
     /// as well as original transaction details such as value, gas limit, gas price, etc.
     ///

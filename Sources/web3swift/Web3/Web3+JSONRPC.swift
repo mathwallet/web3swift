@@ -103,6 +103,7 @@ public struct JSONRPCresponse: Decodable{
                                   TransactionDetails.self,
                                   TransactionReceipt.self,
                                   Block.self,
+                                  FeeHistoryResult.self,
                                   String.self,
                                   Int.self,
                                   Bool.self,
@@ -129,6 +130,8 @@ public struct JSONRPCresponse: Decodable{
         } else if let rawValue = try? container.decodeIfPresent(EventLog.self, forKey: .result) {
             result = rawValue
         } else if let rawValue = try? container.decodeIfPresent(Block.self, forKey: .result) {
+            result = rawValue
+        } else if let rawValue = try? container.decodeIfPresent(FeeHistoryResult.self, forKey: .result) {
             result = rawValue
         } else if let rawValue = try? container.decodeIfPresent(TransactionReceipt.self, forKey: .result) {
             result = rawValue
@@ -266,9 +269,13 @@ public struct JSONRPCparams: Encodable{
         for par in params {
             if let p = par as? TransactionParameters {
                 try container.encode(p)
+            } else if let p = par as? Int {
+                try container.encode(p)
             } else if let p = par as? String {
                 try container.encode(p)
             } else if let p = par as? Bool {
+                try container.encode(p)
+            } else if let p = par as? [String] {
                 try container.encode(p)
             } else if let p = par as? EventFilterParameters {
                 try container.encode(p)
