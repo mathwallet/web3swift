@@ -25,7 +25,7 @@ extension web3 {
         /// Initialize the bound contract instance by supplying the Web3 provider bound object, ABI, Ethereum address and some default
         /// options for further function calls. By default the contract inherits options from the web3 object. Additionally supplied "options"
         /// do override inherited ones.
-        public init?(web3 web3Instance:web3, abiString: String, at: EthereumAddress? = nil, transactionOptions: TransactionOptions? = nil, abiVersion: Int = 2) {
+        public init?(web3 web3Instance:web3, abiString: String, at: EthereumAddress? = nil, transactionOptions: TransactionOptions? = nil, abiVersion: Int = 2, transactionType: EthereumTransactionType = .Legacy) {
             self.web3 = web3Instance
             self.transactionOptions = web3.transactionOptions
             switch abiVersion {
@@ -33,7 +33,7 @@ extension web3 {
                 print("ABIv1 bound contract is now deprecated")
                 return nil
             case 2:
-                guard let c = EthereumContract(abiString, at: at) else {return nil}
+                guard let c = EthereumContract(abiString, at: at, transactionType: transactionType) else {return nil}
                 contract = c
             default:
                 return nil

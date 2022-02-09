@@ -81,7 +81,7 @@ public struct EthereumContract:ContractProtocol {
         return toReturn
     }
     
-    public init?(_ abiString: String, at: EthereumAddress? = nil, transactionType type: EthereumTransactionType = .Legacy) {
+    public init?(_ abiString: String, at: EthereumAddress? = nil, transactionType: EthereumTransactionType = .Legacy) {
         do {
             let jsonData = abiString.data(using: .utf8)
             let abi = try JSONDecoder().decode([ABI.Record].self, from: jsonData!)
@@ -92,7 +92,7 @@ public struct EthereumContract:ContractProtocol {
             if at != nil {
                 self.address = at
             }
-            self.transactionType = type
+            self.transactionType = transactionType
         }
         catch{
             return nil

@@ -13,11 +13,12 @@ import BigInt
 public protocol ContractProtocol {
     var address: EthereumAddress? {get set}
     var transactionOptions: TransactionOptions? {get set}
+    var transactionType: EthereumTransactionType {get set}
     var allMethods: [String] {get}
     var allEvents: [String] {get}
     func deploy(bytecode:Data, parameters: [AnyObject], extraData: Data) -> EthereumTransaction?
     func method(_ method:String, parameters: [AnyObject], extraData: Data) -> EthereumTransaction?
-    init?(_ abiString: String, at: EthereumAddress?)
+    init?(_ abiString: String, at: EthereumAddress?, transactionType: EthereumTransactionType)
     func decodeReturnData(_ method:String, data: Data) -> [String:Any]?
     func decodeInputData(_ method:String, data: Data) -> [String:Any]?
     func decodeInputData(_ data: Data) -> [String:Any]?
