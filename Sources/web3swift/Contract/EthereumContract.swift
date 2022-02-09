@@ -10,6 +10,7 @@ import BigInt
 
 public struct EthereumContract:ContractProtocol {
     public var transactionOptions: TransactionOptions? = TransactionOptions.defaultOptions
+    public var transactionType: EthereumTransactionType = .Legacy
     public var address: EthereumAddress? = nil
     
     var _abi: [ABI.Element]
@@ -80,7 +81,7 @@ public struct EthereumContract:ContractProtocol {
         return toReturn
     }
     
-    public init?(_ abiString: String, at: EthereumAddress? = nil) {
+    public init?(_ abiString: String, at: EthereumAddress? = nil, transactionType type: EthereumTransactionType = .Legacy) {
         do {
             let jsonData = abiString.data(using: .utf8)
             let abi = try JSONDecoder().decode([ABI.Record].self, from: jsonData!)
@@ -91,55 +92,23 @@ public struct EthereumContract:ContractProtocol {
             if at != nil {
                 self.address = at
             }
+            self.transactionType = type
         }
         catch{
             return nil
         }
     }
     
-    public init(abi: [ABI.Element]) {
+    public init(abi: [ABI.Element], transactionType type: EthereumTransactionType = .Legacy) {
         _abi = abi
+        transactionType = type
     }
     
-    public init(abi: [ABI.Element], at: EthereumAddress) {
+    public init(abi: [ABI.Element], at: EthereumAddress, transactionType type: EthereumTransactionType = .Legacy) {
         _abi = abi
         address = at
+        transactionType = type
     }
-    
-//    public func deploy(bytecode:Data, parameters: [AnyObject] = [AnyObject](), extraData: Data = Data(), options: Web3Options?) -> EthereumTransaction? {
-//        let to:EthereumAddress = EthereumAddress.contractDeploymentAddress()
-//        let mergedOptions = Web3Options.merge(self.options, with: options)
-//        var gasLimit:BigUInt
-//        if let gasInOptions = mergedOptions?.gasLimit {
-//            gasLimit = gasInOptions
-//        } else {
-//            return nil
-//        }
-//        
-//        var gasPrice:BigUInt
-//        if let gasPriceInOptions = mergedOptions?.gasPrice {
-//            gasPrice = gasPriceInOptions
-//        } else {
-//            return nil
-//        }
-//        
-//        var value:BigUInt
-//        if let valueInOptions = mergedOptions?.value {
-//            value = valueInOptions
-//        } else {
-//            value = BigUInt(0)
-//        }
-//        guard let constructor = self.constructor else {return nil}
-//        guard let encodedData = constructor.encodeParameters(parameters) else {return nil}
-//        var fullData = bytecode
-//        if encodedData != Data() {
-//            fullData.append(encodedData)
-//        } else if extraData != Data() {
-//            fullData.append(extraData)
-//        }
-//        let transaction = EthereumTransaction(gasPrice: gasPrice, gasLimit: gasLimit, to: to, value: value, data: fullData)
-//        return transaction
-//    }
     
     public func deploy(bytecode:Data, parameters: [AnyObject] = [AnyObject](), extraData: Data = Data()) -> EthereumTransaction? {
         let to:EthereumAddress = EthereumAddress.contractDeploymentAddress()
@@ -151,61 +120,15 @@ public struct EthereumContract:ContractProtocol {
         } else if extraData != Data() {
             fullData.append(extraData)
         }
-        let transaction = EthereumTransaction(gasPrice: BigUInt(0), gasLimit: BigUInt(0), to: to, value: BigUInt(0), data: fullData)
+        let transaction = EthereumTransaction(type: self.transactionType, to: to, value: BigUInt(0), data: fullData)
         return transaction
     }
-    
-//    public func method(_ method:String = "fallback", parameters: [AnyObject] = [AnyObject](), extraData: Data = Data(), options: Web3Options?) -> EthereumTransaction? {
-//        var to:EthereumAddress
-//        let mergedOptions = Web3Options.merge(self.options, with: options)
-//        if (self.address != nil) {
-//            to = self.address!
-//        } else if let toFound = mergedOptions?.to, toFound.isValid {
-//            to = toFound
-//        } else  {
-//            return nil
-//        }
-//
-//        var gasLimit:BigUInt
-//        if let gasInOptions = mergedOptions?.gasLimit {
-//            gasLimit = gasInOptions
-//        } else {
-//            return nil
-//        }
-//
-//        var gasPrice:BigUInt
-//        if let gasPriceInOptions = mergedOptions?.gasPrice {
-//            gasPrice = gasPriceInOptions
-//        } else {
-//            return nil
-//        }
-//
-//        var value:BigUInt
-//        if let valueInOptions = mergedOptions?.value {
-//            value = valueInOptions
-//        } else {
-//            value = BigUInt(0)
-//        }
-//
-//        if (method == "fallback") {
-//            let transaction = EthereumTransaction(gasPrice: gasPrice, gasLimit: gasLimit, to: to, value: value, data: extraData)
-//            return transaction
-//        }
-//        let foundMethod = self.methods.filter { (key, value) -> Bool in
-//            return key == method
-//        }
-//        guard foundMethod.count == 1 else {return nil}
-//        let abiMethod = foundMethod[method]
-//        guard let encodedData = abiMethod?.encodeParameters(parameters) else {return nil}
-//        let transaction = EthereumTransaction(gasPrice: gasPrice, gasLimit: gasLimit, to: to, value: value, data: encodedData)
-//        return transaction
-//    }
     
     public func method(_ method:String = "fallback", parameters: [AnyObject] = [AnyObject](), extraData: Data = Data()) -> EthereumTransaction? {
         guard let to = self.address else {return nil}
 
         if (method == "fallback") {
-            let transaction = EthereumTransaction(gasPrice: BigUInt(0), gasLimit: BigUInt(0), to: to, value: BigUInt(0), data: extraData)
+            let transaction = EthereumTransaction(type: self.transactionType, to: to, value: BigUInt(0), data: extraData)
             return transaction
         }
         let foundMethod = self.methods.filter { (key, value) -> Bool in
@@ -214,7 +137,7 @@ public struct EthereumContract:ContractProtocol {
         guard foundMethod.count == 1 else {return nil}
         let abiMethod = foundMethod[method]
         guard let encodedData = abiMethod?.encodeParameters(parameters) else {return nil}
-        let transaction = EthereumTransaction(gasPrice: BigUInt(0), gasLimit: BigUInt(0), to: to, value: BigUInt(0), data: encodedData)
+        let transaction = EthereumTransaction(type: self.transactionType, to: to, value: BigUInt(0), data: encodedData)
         return transaction
     }
     
