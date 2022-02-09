@@ -85,6 +85,15 @@ public struct EthereumTransaction: CustomStringConvertible {
         return hash
     }
     
+    
+    public init(type: EthereumTransactionType, to: EthereumAddress, value: BigUInt, data: Data) {
+        self.type = type
+        self.nonce = BigUInt(0)
+        self.value = value
+        self.data = data
+        self.to = to
+    }
+    
     public init(gasPrice: BigUInt, gasLimit: BigUInt, to: EthereumAddress, value: BigUInt, data: Data) {
         self.type = .Legacy
         self.nonce = BigUInt(0)
