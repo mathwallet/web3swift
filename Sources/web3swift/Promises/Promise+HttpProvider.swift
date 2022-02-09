@@ -67,7 +67,7 @@ extension Web3HttpProvider {
 //                let debugValue = try JSONSerialization.jsonObject(with: requestData, options: JSONSerialization.ReadingOptions(rawValue: 0))
 //                print(debugValue)
 //                let debugString = String(data: requestData, encoding: .utf8)
-//                print(debugString)
+//                print(debugString ?? "")
                 task = session.dataTask(with: urlRequest){ (data, response, error) in
                     guard error == nil else {
                         rp.resolver.reject(error!)

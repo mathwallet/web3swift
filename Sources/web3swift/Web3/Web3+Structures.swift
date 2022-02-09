@@ -44,6 +44,8 @@ extension TransactionOptions: Decodable {
         case from
         case to
         case gasPrice
+        case maxFeePerGas
+        case maxPriorityFeePerGas
         case gas
         case value
         case nonce
@@ -62,6 +64,18 @@ extension TransactionOptions: Decodable {
             self.gasPrice = .manual(gasPrice)
         } else {
             self.gasPrice = .automatic
+        }
+        
+        if let maxFeePerGas = try decodeHexToBigUInt(container, key: .maxFeePerGas, allowOptional: true) {
+            self.maxFeePerGas = .manual(maxFeePerGas)
+        } else {
+            self.maxFeePerGas = .automatic
+        }
+        
+        if let maxPriorityFeePerGas = try decodeHexToBigUInt(container, key: .maxPriorityFeePerGas, allowOptional: true) {
+            self.maxPriorityFeePerGas = .manual(maxPriorityFeePerGas)
+        } else {
+            self.maxPriorityFeePerGas = .automatic
         }
         
         let toString = try container.decode(String?.self, forKey: .to)
@@ -110,6 +124,7 @@ extension EthereumTransaction:Decodable {
         case r
         case s
         case value
+        case chainId
     }
     
     public init(from decoder: Decoder) throws {
@@ -140,6 +155,8 @@ extension EthereumTransaction:Decodable {
         guard let s = try decodeHexToBigUInt(container, key: .s) else {throw Web3Error.dataError}
         self.s = s
         
+        self.chainID = try decodeHexToBigUInt(container, key: .chainId, allowOptional: true)
+        
         if options.value == nil || options.to == nil || options.gasLimit == nil || options.gasPrice == nil{
             throw Web3Error.dataError
         }
@@ -149,9 +166,30 @@ extension EthereumTransaction:Decodable {
         if let gP = options.gasPrice {
             switch gP {
             case .manual(let value):
+                self.type = .Legacy
                 self.gasPrice = value
             default:
                 self.gasPrice = BigUInt("5000000000")
+            }
+        }
+        
+        if let mF = options.maxFeePerGas {
+            switch mF {
+            case .manual(let value):
+                self.type = .EIP1559
+                self.maxFeePerGas = value
+            default:
+                self.maxFeePerGas = BigUInt("5000000000")
+            }
+        }
+        
+        if let mP = options.maxPriorityFeePerGas {
+            switch mP {
+            case .manual(let value):
+                self.type = .EIP1559
+                self.maxPriorityFeePerGas = value
+            default:
+                self.maxPriorityFeePerGas = BigUInt("1000000000")
             }
         }
         

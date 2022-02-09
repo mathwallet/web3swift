@@ -243,6 +243,8 @@ public struct TransactionParameters: Codable {
     public var from: String?
     public var gas: String?
     public var gasPrice: String?
+    public var maxFeePerGas: String?
+    public var maxPriorityFeePerGas: String?
     public var to: String?
     public var value: String? = "0x0"
     

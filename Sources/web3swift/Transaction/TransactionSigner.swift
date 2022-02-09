@@ -72,7 +72,7 @@ public struct Web3Signer {
     }
     
     public struct EIP1559Signer {
-        public static func sign(transaction:inout EthereumEIP1559Transaction, privateKey: Data, useExtraEntropy: Bool = false) throws {
+        public static func sign(transaction:inout EthereumTransaction, privateKey: Data, useExtraEntropy: Bool = false) throws {
             for _ in 0..<1024 {
                 let result = self.attemptSignature(transaction: &transaction, privateKey: privateKey, useExtraEntropy: useExtraEntropy)
                 if (result) {
@@ -82,7 +82,7 @@ public struct Web3Signer {
             throw AbstractKeystoreError.invalidAccountError
         }
         
-        private static func attemptSignature(transaction:inout EthereumEIP1559Transaction, privateKey: Data, useExtraEntropy: Bool = false) -> Bool {
+        private static func attemptSignature(transaction:inout EthereumTransaction, privateKey: Data, useExtraEntropy: Bool = false) -> Bool {
             guard let hash = transaction.hashForSignature() else {return false}
             let signature  = SECP256K1.signForRecovery(hash: hash, privateKey: privateKey, useExtraEntropy: useExtraEntropy, useExtraVer: false)
             guard let serializedSignature = signature.serializedSignature else {return false}

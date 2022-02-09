@@ -24,11 +24,11 @@ class web3swift_transactions_Tests: XCTestCase {
                                                   v: BigUInt(0),
                                                   r: BigUInt(0),
                                                   s: BigUInt(0))
+            transaction.chainID = BigUInt(1)
             let privateKeyData = Data.fromHex("0x4646464646464646464646464646464646464646464646464646464646464646")!
             let publicKey = Web3.Utils.privateToPublic(privateKeyData, compressed: false)
             let sender = Web3.Utils.publicToAddress(publicKey!)
-            transaction.chainID = BigUInt(1)
-            print(transaction)
+
             let hash = transaction.hashForSignature(chainID: BigUInt(1))
             let expectedHash = "0xdaf5a779ae972f972197303d7b574746c7ef83eadac0f2791ad23db92e4c8e53".stripHexPrefix()
             XCTAssert(hash!.toHexString() == expectedHash, "Transaction signature failed")
@@ -46,7 +46,7 @@ class web3swift_transactions_Tests: XCTestCase {
     
     func testTransactionEIP1559() {
         do {
-            var transaction = EthereumEIP1559Transaction(maxPriorityFeePerGas: BigUInt("59682f00", radix: 16)!, maxFeePerGas: BigUInt("1b50d4af77", radix: 16)!, gasLimit: BigUInt("5208", radix: 16)!, to: EthereumAddress("0x306bb8081c7dd356ea951795ce4072e6e4bfdc32")!, value: BigUInt(0), data: Data(), chainID: BigUInt(1))
+            var transaction = EthereumTransaction(maxPriorityFeePerGas: BigUInt("59682f00", radix: 16)!, maxFeePerGas: BigUInt("1b50d4af77", radix: 16)!, gasLimit: BigUInt("5208", radix: 16)!, to: EthereumAddress("0x306bb8081c7dd356ea951795ce4072e6e4bfdc32")!, value: BigUInt(0), data: Data(), chainID: BigUInt(1))
             transaction.nonce = BigUInt(473)
             
             let privateKeyData = Data.fromHex("0x4646464646464646464646464646464646464646464646464646464646464646")!
@@ -57,12 +57,42 @@ class web3swift_transactions_Tests: XCTestCase {
             print(transaction)
             XCTAssert(transaction.v == UInt8(0), "Transaction signature failed")
             XCTAssert(sender == transaction.sender)
+            let expectedTxid = "0xb5308f2b28dc00c7342fa49b25e857aa0b02a9b353968486bf46154df6478bd9"
+            XCTAssert(expectedTxid == transaction.txid!)
             print(transaction.encode()!.toHexString())
         }
         catch {
             print(error)
             XCTFail()
         }
+    }
+    
+    func testEstimateGas() throws {
+        var transaction = EthereumTransaction(gasPrice: BigUInt(100000000000),
+                                              gasLimit: BigUInt("50000"),
+                                              to: EthereumAddress("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")!,
+                                              value: BigUInt(0),
+                                              data: Data(hex: "095ea7b3000000000000000000000000e5c783ee536cf5e63e792988335c4255169be4e1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"))
+        transaction.nonce = BigUInt(24)
+        
+        let web3 = Web3.InfuraMainnetWeb3()
+        let estimateGas = try web3.eth.estimateGas(transaction, transactionOptions: nil)
+        debugPrint(estimateGas.description)
+    }
+    
+    func testEstimateGas_EIP1559() throws {
+        var transaction = EthereumTransaction(maxPriorityFeePerGas: BigUInt("1500000000"),
+                                              maxFeePerGas: BigUInt("84215025019"),
+                                              gasLimit: BigUInt("50000"),
+                                              to: EthereumAddress("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")!,
+                                              value: BigUInt(0),
+                                              data: Data(hex: "095ea7b3000000000000000000000000e5c783ee536cf5e63e792988335c4255169be4e1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
+                                              chainID: BigUInt(1))
+        transaction.nonce = BigUInt(24)
+        
+        let web3 = Web3.InfuraMainnetWeb3()
+        let estimateGas = try web3.eth.estimateGas(transaction, transactionOptions: nil)
+        debugPrint(estimateGas.description)
     }
     
     func testEthSendExample() {
@@ -89,14 +119,22 @@ class web3swift_transactions_Tests: XCTestCase {
     
     func testTransactionReceipt() throws {
         let web3 = Web3.InfuraMainnetWeb3()
-        let response = try web3.eth.getTransactionReceipt("0x83b2433606779fd756417a863f26707cf6d7b2b55f5d744a39ecddb8ca01056e")
+        let response = try web3.eth.getTransactionReceipt("0xa111166b3054c9e77d02b6d7c5f0f65720ea1c3749ca10d48919f997cdd98fdc")
+        debugPrint(response)
         XCTAssert(response.status == .ok)
     }
     
     func testTransactionDetails() throws {
         let web3 = Web3.InfuraMainnetWeb3()
-        let response = try web3.eth.getTransactionDetails("0x127519412cefd773b952a5413a4467e9119654f59a34eca309c187bd9f3a195a")
-        XCTAssert(response.transaction.gasLimit == BigUInt(78423))
+        // Legacy
+        let response = try web3.eth.getTransactionDetails("0x5b596e2e2c3375ac1c4d37d668e383ece6db0d090306c9ebe172a0c7dd48ba23")
+        print(response)
+        XCTAssert(response.transaction.txid == "0x5b596e2e2c3375ac1c4d37d668e383ece6db0d090306c9ebe172a0c7dd48ba23")
+        
+        // EIP-1559
+        let response2 = try web3.eth.getTransactionDetails("0xa111166b3054c9e77d02b6d7c5f0f65720ea1c3749ca10d48919f997cdd98fdc")
+        print(response)
+        XCTAssert(response2.transaction.txid == "0xa111166b3054c9e77d02b6d7c5f0f65720ea1c3749ca10d48919f997cdd98fdc")
     }
     
     

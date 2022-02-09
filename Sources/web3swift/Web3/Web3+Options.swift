@@ -39,6 +39,20 @@ public struct TransactionOptions {
         case withMargin(Double)
     }
     public var gasPrice: GasPricePolicy?
+    
+    public enum MaxPriorityFeePerGasPolicy {
+        case automatic
+        case manual(BigUInt)
+        case withMargin(Double)
+    }
+    public var maxPriorityFeePerGas: MaxPriorityFeePerGasPolicy?
+    
+    public enum MaxFeePerGasPolicy {
+        case automatic
+        case manual(BigUInt)
+        case withMargin(Double)
+    }
+    public var maxFeePerGas: MaxFeePerGasPolicy?
 
     /// The value transferred for the transaction in wei, also the endowment if it’s a contract-creation transaction.
     public var value: BigUInt? = nil
@@ -77,12 +91,38 @@ public struct TransactionOptions {
         opts.nonce = .pending
         opts.gasLimit = .automatic
         opts.gasPrice = .automatic
+        opts.maxFeePerGas = .automatic
+        opts.maxPriorityFeePerGas = .automatic
         return opts
     }
     
     public func resolveGasPrice(_ suggestedByNode: BigUInt) -> BigUInt? {
         guard let gasPricePolicy = self.gasPrice else {return nil}
         switch gasPricePolicy {
+        case .automatic:
+            return suggestedByNode
+        case .manual(let value):
+            return value
+        case .withMargin(_):
+            return suggestedByNode
+        }
+    }
+    
+    public func resolveMaxFeePerGas(_ suggestedByNode: BigUInt) -> BigUInt? {
+        guard let maxFeePerGasPolicy = self.maxFeePerGas else {return nil}
+        switch maxFeePerGasPolicy {
+        case .automatic:
+            return suggestedByNode
+        case .manual(let value):
+            return value
+        case .withMargin(_):
+            return suggestedByNode
+        }
+    }
+    
+    public func resolveMaxPriorityFeePerGas(_ suggestedByNode: BigUInt) -> BigUInt? {
+        guard let maxPriorityFeePerGasPolicy = self.maxPriorityFeePerGas else {return nil}
+        switch maxPriorityFeePerGasPolicy {
         case .automatic:
             return suggestedByNode
         case .manual(let value):
@@ -116,6 +156,8 @@ public struct TransactionOptions {
         opts.to = mergeIfNotNil(first: self.to, second: other.to)
         opts.gasLimit = mergeIfNotNil(first: self.gasLimit, second: other.gasLimit)
         opts.gasPrice = mergeIfNotNil(first: self.gasPrice, second: other.gasPrice)
+        opts.maxFeePerGas = mergeIfNotNil(first: self.maxFeePerGas, second: other.maxFeePerGas)
+        opts.maxPriorityFeePerGas = mergeIfNotNil(first: self.maxPriorityFeePerGas, second: other.maxPriorityFeePerGas)
         opts.value = mergeIfNotNil(first: self.value, second: other.value)
         opts.nonce = mergeIfNotNil(first: self.nonce, second: other.nonce)
         opts.callOnBlock = mergeIfNotNil(first: self.callOnBlock, second: other.callOnBlock)
@@ -135,6 +177,16 @@ public struct TransactionOptions {
             options.gasPrice = .manual(gasPriceBiguint)
         } else {
             options.gasPrice = .automatic
+        }
+        if let maxFeePerGas = json["maxFeePerGas"] as? String, let maxFeePerGasBiguint = BigUInt(maxFeePerGas.stripHexPrefix().lowercased(), radix: 16) {
+            options.maxFeePerGas = .manual(maxFeePerGasBiguint)
+        } else {
+            options.maxFeePerGas = .automatic
+        }
+        if let maxPriorityFeePerGas = json["maxPriorityFeePerGas"] as? String, let maxPriorityFeePerGasBiguint = BigUInt(maxPriorityFeePerGas.stripHexPrefix().lowercased(), radix: 16) {
+            options.maxPriorityFeePerGas = .manual(maxPriorityFeePerGasBiguint)
+        } else {
+            options.maxPriorityFeePerGas = .automatic
         }
         if let value = json["value"] as? String, let valueBiguint = BigUInt(value.stripHexPrefix().lowercased(), radix: 16) {
             options.value = valueBiguint
@@ -189,6 +241,16 @@ public struct TransactionOptions {
         } else {
             newOptions.gasPrice = options?.gasPrice
         }
+        if (other?.maxFeePerGas != nil) {
+            newOptions.maxFeePerGas = other?.maxFeePerGas
+        } else {
+            newOptions.maxFeePerGas = options?.maxFeePerGas
+        }
+        if (other?.maxPriorityFeePerGas != nil) {
+            newOptions.maxPriorityFeePerGas = other?.maxPriorityFeePerGas
+        } else {
+            newOptions.maxPriorityFeePerGas = options?.maxPriorityFeePerGas
+        }
         if (other?.value != nil) {
             newOptions.value = other?.value
         } else {
@@ -196,44 +258,6 @@ public struct TransactionOptions {
         }
         return newOptions
     }
-//
-//    /// merges two sets of options along with a gas estimate to try to guess the final gas limit value required by user.
-//    ///
-//    /// Please refer to the source code for a logic.
-//    public static func smartMergeGasLimit(originalOptions: Web3Options?, extraOptions: Web3Options?, gasEstimate: BigUInt) -> BigUInt? {
-//        guard let mergedOptions = Web3Options.merge(originalOptions, with: extraOptions) else {return nil} //just require any non-nils
-//        if mergedOptions.gasLimit == nil {
-//            return gasEstimate // for user's convenience we just use an estimate
-//            //            return nil // there is no opinion from user, so we can not proceed
-//        } else {
-//            if originalOptions != nil, originalOptions!.gasLimit != nil, originalOptions!.gasLimit! < gasEstimate { // original gas estimate was less than what's required, so we check extra options
-//                if extraOptions != nil, extraOptions!.gasLimit != nil, extraOptions!.gasLimit! >= gasEstimate {
-//                    return extraOptions!.gasLimit!
-//                } else {
-//                    return gasEstimate // for user's convenience we just use an estimate
-//                    //                    return nil // estimate is lower than allowed
-//                }
-//            } else {
-//                if extraOptions != nil, extraOptions!.gasLimit != nil, extraOptions!.gasLimit! >= gasEstimate {
-//                    return extraOptions!.gasLimit!
-//                } else {
-//                    return gasEstimate // for user's convenience we just use an estimate
-//                    //                    return nil // estimate is lower than allowed
-//                }
-//            }
-//        }
-//    }
-//
-//    public static func smartMergeGasPrice(originalOptions: Web3Options?, extraOptions: Web3Options?, priceEstimate: BigUInt) -> BigUInt? {
-//        guard let mergedOptions = Web3Options.merge(originalOptions, with: extraOptions) else {return nil} //just require any non-nils
-//        if mergedOptions.gasPrice == nil {
-//            return priceEstimate
-//        } else if mergedOptions.gasPrice == 0 {
-//            return priceEstimate
-//        } else {
-//            return mergedOptions.gasPrice!
-//        }
-//    }
 }
 
 fileprivate func mergeIfNotNil<T>(first: T?, second: T?) -> T? {
