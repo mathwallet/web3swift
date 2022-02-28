@@ -170,7 +170,7 @@ public struct EthereumTransaction: CustomStringConvertible {
             toReturn = toReturn + "Intrinsic chainID: " + String(describing:self.chainID) + "\n"
             toReturn = toReturn + "Infered chainID: " + String(describing:self.inferedChainID) + "\n"
             toReturn = toReturn + "sender: " + String(describing: self.sender?.address)  + "\n"
-            toReturn = toReturn + "txid: \(self.txid)\n"
+            toReturn = toReturn + "txid: \(self.txid ?? "")\n"
             return toReturn
         }
         

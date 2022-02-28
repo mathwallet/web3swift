@@ -100,25 +100,29 @@ class web3swift_promises_Tests: XCTestCase {
         }
     }
     
-//    func testSendETHPromise() {
-//        do {
-//            guard let keystoreData = getKeystoreData() else {return}
-//            guard let keystoreV3 = EthereumKeystoreV3.init(keystoreData) else {return XCTFail()}
-//            let web3Rinkeby = Web3.InfuraRinkebyWeb3()
-//            let keystoreManager = KeystoreManager.init([keystoreV3])
-//            web3Rinkeby.addKeystoreManager(keystoreManager)
-//            let gasPriceRinkeby = try web3Rinkeby.eth.getGasPrice()
-//            let sendToAddress = EthereumAddress("0xe22b8979739D724343bd002F9f432F5990879901")!
-//            guard let writeTX = web3Rinkeby.eth.sendETH(to: sendToAddress, amount: "0.001") else {return XCTFail()}
-//            writeTX.transactionOptions.from = keystoreV3.addresses?.first
-//            writeTX.transactionOptions.gasPrice = .manual(gasPriceRinkeby)
-//            let result = try writeTX.sendPromise().wait()
-//            print(result)
-//        } catch {
-//            print(error)
-//            XCTFail()
-//        }
-//    }
+    func testSendETHPromise() {
+        do {
+            let privateKey = Data(hex: "74a07c0b649ccf9de07039321b2d71efd468392d40f6fdc08828765f3e1e6d17")
+            let from = EthereumAddress("0x19C5860f6183b33e1e78453312Ab1A1fbC705426")!
+            let to = EthereumAddress("0x9ad08de843158b0a4f8efdae6ea49caf77bbf13f")!
+            let web3Testnet = try Web3.new(URL(string: "https://evm-t3.cronos.org")!, networkId: BigUInt(338), isSupportedBatch: false)
+            let nonce = try web3Testnet.eth.getTransactionCount(address: from)
+            var transaction = EthereumTransaction(gasPrice: BigUInt("0x48ff36cddf6".stripHexPrefix(), radix: 16)!,
+                                              gasLimit: BigUInt("0x24a1c".stripHexPrefix(), radix: 16)!,
+                                              to: to,
+                                              value: BigUInt(0),
+                                              data: Data(hex: "0x3363315c0000000000000000000000019c5860f6183b33e1e78453312ab1a1fbc705426".stripHexPrefix()))
+            transaction.nonce = nonce
+            transaction.UNSAFE_setChainID(BigUInt(338))
+            try Web3Signer.EIP155Signer.sign(transaction: &(transaction), privateKey: privateKey)
+            
+            let result = try web3Testnet.eth.sendRawTransaction(transaction)
+            print(result)
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
     
     func testERC20tokenBalancePromise() {
         do {
