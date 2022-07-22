@@ -8,6 +8,7 @@ import XCTest
 import CryptoSwift
 import BIP39swift
 import BIP32Swift
+import RIPEMDSwift
 
 @testable import web3swift
 
@@ -38,7 +39,7 @@ class web3swift_Keystores_tests: XCTestCase {
     func testHMAC() {
         let seed = Data.fromHex("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b")!
         let data = Data.fromHex("4869205468657265")!
-        let hmac = try! HMAC.init(key: seed.bytes, variant: HMAC.Variant.sha512).authenticate(data.bytes)
+        let hmac = try! HMAC.init(key: seed.bytes, variant: HMAC.Variant.sha2(.sha512)).authenticate(data.bytes)
         XCTAssert(Data(hmac).toHexString() == "87aa7cdea5ef619d4ff0b4241a1d6cb02379f4e2ce4ec2787ad0b30545e17cdedaa833b7d6b8a702038b274eaea3f4e4be9d914eeb61f1702e696c203a126854")
     }
     
@@ -171,7 +172,7 @@ class web3swift_Keystores_tests: XCTestCase {
     func testRIPEMD() {
         let data = "message digest".data(using: .ascii)
         
-        let hash = try! web3swift.RIPEMD160.hash(message: data!)
+        let hash = try! RIPEMD160.hash(message: data!)
         XCTAssert(hash.toHexString() == "5d0689ef49d2fae572b881b123a85ffa21595f36")
     }
     

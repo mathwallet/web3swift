@@ -17,7 +17,7 @@ let package = Package(
     .package(url: "https://github.com/mxcl/PromiseKit.git", from: "6.8.4"),
     .package(url: "https://github.com/daltoniam/Starscream.git", from: "3.1.1"),
     .package(url: "https://github.com/mathwallet/BIP39swift.git", from: "1.0.1"),
-    .package(url: "https://github.com/mathwallet/Secp256k1Swift.git", from: "1.3.0")
+    .package(url: "https://github.com/mathwallet/Secp256k1Swift.git", from: "1.3.1")
 ],
   targets: [
     .target(
