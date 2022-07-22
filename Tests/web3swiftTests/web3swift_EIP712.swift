@@ -139,6 +139,6 @@ class web3swift_EIP712_Tests: XCTestCase {
         let typedData = try JSONDecoder().decode(EIP712TypedData.self, from: jsonString.data(using: .utf8)!)
         debugPrint(typedData.encodeType(typedData.primaryType))
         let digestData = try typedData.digestData()
-        debugPrint(digestData.toHexString())
+        XCTAssertEqual(digestData.toHexString(), "abc79f527273b9e7bca1b3f1ac6ad1a8431fa6dc34ece900deabcd6969856b5e")
     }
 }

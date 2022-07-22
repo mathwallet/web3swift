@@ -215,7 +215,7 @@ public extension EIP712TypedData {
                 abiValue = EIP712Crypto.keccak256(v) as AnyObject
             default:
                 guard case .object(let value) = json,
-                      let key = value.keys.filter({ $0.lowercased() == valueType.type.lowercased() }).first else {
+                      let key = value.keys.filter({ $0 == valueType.name }).first else {
                     throw Web3Error.processingError(desc: "Not solidity type")
                 }
                 guard let obj = json[key] else {
