@@ -157,65 +157,19 @@ public extension EIP712TypedData {
         case "bool":
             abiType = .bool
             abiValue = (json.boolValue ?? false) as AnyObject
-        case "int8":
+        case _ where type.hasPrefix("int"):
             guard let v = json.stringValue else {
                 throw Web3Error.processingError(desc: "Not solidity type")
             }
-            abiType = .int(bits: 8)
+            let bits = UInt64(type.replacingOccurrences(of: "int", with: "")) ?? UInt64(256)
+            abiType = .int(bits: bits)
             abiValue = v as AnyObject
-        case "int16":
+        case _ where type.hasPrefix("uint"):
             guard let v = json.stringValue else {
                 throw Web3Error.processingError(desc: "Not solidity type")
             }
-            abiType = .int(bits: 16)
-            abiValue = v as AnyObject
-        case "int32":
-            guard let v = json.stringValue else {
-                throw Web3Error.processingError(desc: "Not solidity type")
-            }
-            abiType = .int(bits: 32)
-            abiValue = v as AnyObject
-        case "int64":
-            guard let v = json.stringValue else {
-                throw Web3Error.processingError(desc: "Not solidity type")
-            }
-            abiType = .int(bits: 64)
-            abiValue = v as AnyObject
-        case "uint8":
-            guard let v = json.stringValue else {
-                throw Web3Error.processingError(desc: "Not solidity type")
-            }
-            abiType = .uint(bits: 8)
-            abiValue = v as AnyObject
-        case "uint16":
-            guard let v = json.stringValue else {
-                throw Web3Error.processingError(desc: "Not solidity type")
-            }
-            abiType = .uint(bits: 16)
-            abiValue = v as AnyObject
-        case "uint32":
-            guard let v = json.stringValue else {
-                throw Web3Error.processingError(desc: "Not solidity type")
-            }
-            abiType = .uint(bits: 32)
-            abiValue = v as AnyObject
-        case "uint64":
-            guard let v = json.stringValue else {
-                throw Web3Error.processingError(desc: "Not solidity type")
-            }
-            abiType = .uint(bits: 64)
-            abiValue = v as AnyObject
-        case "uint256":
-            guard let v = json.stringValue else {
-                throw Web3Error.processingError(desc: "Not solidity type")
-            }
-            abiType = .uint(bits: 256)
-            abiValue = v as AnyObject
-        case "uint":
-            guard let v = json.stringValue else {
-                throw Web3Error.processingError(desc: "Not solidity type")
-            }
-            abiType = .uint(bits: 256)
+            let bits = UInt64(type.replacingOccurrences(of: "uint", with: "")) ?? UInt64(256)
+            abiType = .uint(bits: bits)
             abiValue = v as AnyObject
         case "address":
             guard let v = json.stringValue, let address = EthereumAddress(v) else {
@@ -223,18 +177,19 @@ public extension EIP712TypedData {
             }
             abiType = .address
             abiValue = address as AnyObject
-        case "bytes32":
-            guard let v = json.stringValue?.stripHexPrefix() else {
-                throw Web3Error.processingError(desc: "Not solidity type")
-            }
-            abiType = .bytes(length: 32)
-            abiValue = Data(hex: v) as AnyObject
         case "bytes":
             guard let v = json.stringValue?.stripHexPrefix() else {
                 throw Web3Error.processingError(desc: "Not solidity type")
             }
             abiType = .bytes(length: 32)
             abiValue = EIP712Crypto.keccak256(Data(hex: v)) as AnyObject
+        case _ where type.hasPrefix("bytes"):
+            guard let v = json.stringValue?.stripHexPrefix() else {
+                throw Web3Error.processingError(desc: "Not solidity type")
+            }
+            let bits = UInt64(type.replacingOccurrences(of: "bytes", with: "")) ?? UInt64(32)
+            abiType = .bytes(length: bits)
+            abiValue = Data(hex: v) as AnyObject
         case "string":
             guard let v = json.stringValue?.data(using: .utf8) else {
                 throw Web3Error.processingError(desc: "Not solidity type")
