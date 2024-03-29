@@ -90,8 +90,8 @@ import Foundation
 
 /// A struct represents EIP712 type tuple
 public struct EIP712TypedDataType: Codable {
-    var name: String
-    var type: String
+    public var name: String
+    public var type: String
 }
 
 /// A struct represents EIP712 TypedData

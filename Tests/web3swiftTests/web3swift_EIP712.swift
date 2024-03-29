@@ -145,9 +145,8 @@ class web3swift_EIP712_Tests: XCTestCase {
     func testEIP712TypedDataExamples2() throws {
         let jsonString = "{\"types\":{\"PermitSingle\":[{\"name\":\"details\",\"type\":\"PermitDetails\"},{\"name\":\"spender\",\"type\":\"address\"},{\"name\":\"sigDeadline\",\"type\":\"uint256\"}],\"PermitDetails\":[{\"name\":\"token\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint160\"},{\"name\":\"expiration\",\"type\":\"uint48\"},{\"name\":\"nonce\",\"type\":\"uint48\"}],\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}]},\"domain\":{\"name\":\"Permit2\",\"chainId\":\"42161\",\"verifyingContract\":\"0x000000000022d473030f116ddee9f6b43ac78ba3\"},\"primaryType\":\"PermitSingle\",\"message\":{\"details\":{\"token\":\"0x912ce59144191c1204e64559fe8253a0e49e6548\",\"amount\":\"1461501637330902918203684832716283019655932542975\",\"expiration\":\"1714203138\",\"nonce\":\"0\"},\"spender\":\"0x5e325eda8064b456f4781070c0738d849c824258\",\"sigDeadline\":\"1711612938\"}}"
         let typedData = try JSONDecoder().decode(EIP712TypedData.self, from: jsonString.data(using: .utf8)!)
-        debugPrint(typedData.encodeType(typedData.primaryType))
         let digestData = try typedData.digestData()
-        debugPrint(digestData.toHexString())
         XCTAssertEqual(digestData.toHexString(), "0x57851d73d396c022a4e3ee737560e784bb425251354b4c1868bcda9823f29f64".stripHexPrefix())
     }
+    
 }
