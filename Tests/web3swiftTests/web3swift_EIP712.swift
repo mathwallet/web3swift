@@ -149,4 +149,13 @@ class web3swift_EIP712_Tests: XCTestCase {
         XCTAssertEqual(digestData.toHexString(), "0x57851d73d396c022a4e3ee737560e784bb425251354b4c1868bcda9823f29f64".stripHexPrefix())
     }
     
+    func testEIP712TypedDataExamples3() throws {
+        let jsonString = "{\"types\":{\"BatchSignedERC721Orders\":[{\"type\":\"address\",\"name\":\"maker\"},{\"type\":\"uint256\",\"name\":\"listingTime\"},{\"type\":\"uint256\",\"name\":\"expiryTime\"},{\"type\":\"uint256\",\"name\":\"startNonce\"},{\"type\":\"address\",\"name\":\"erc20Token\"},{\"type\":\"address\",\"name\":\"platformFeeRecipient\"},{\"type\":\"BasicCollection[]\",\"name\":\"basicCollections\"},{\"type\":\"Collection[]\",\"name\":\"collections\"},{\"type\":\"uint256\",\"name\":\"hashNonce\"}],\"BasicCollection\":[{\"type\":\"address\",\"name\":\"nftAddress\"},{\"type\":\"bytes32\",\"name\":\"fee\"},{\"type\":\"bytes32[]\",\"name\":\"items\"}],\"Collection\":[{\"type\":\"address\",\"name\":\"nftAddress\"},{\"type\":\"bytes32\",\"name\":\"fee\"},{\"type\":\"OrderItem[]\",\"name\":\"items\"}],\"OrderItem\":[{\"type\":\"uint256\",\"name\":\"erc20TokenAmount\"},{\"type\":\"uint256\",\"name\":\"nftId\"}],\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}]},\"domain\":{\"name\":\"ElementEx\",\"version\":\"1.0.0\",\"chainId\":\"137\",\"verifyingContract\":\"0xeaf5453b329eb38be159a872a6ce91c9a8fb0260\"},\"primaryType\":\"BatchSignedERC721Orders\",\"message\":{\"maker\":\"0x588faac6b3aa91bb4cd8127ab357515716541f1b\",\"listingTime\":\"1713358934\",\"expiryTime\":\"1715950990\",\"startNonce\":\"8\",\"erc20Token\":\"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"platformFeeRecipient\":\"0xd207842d66b715df6ea08cf52f025b9e2ed28788\",\"basicCollections\":[{\"nftAddress\":\"0xb02fc30c2290d7df332397bad70c1852bbc61012\",\"fee\":\"0x000000000000000000c800000000000000000000000000000000000000000000\",\"items\":[\"0x000000001e87f85809dc00000000000000000000000000000000000000000040\"]}],\"collections\":[],\"hashNonce\":\"0\"}}"
+        let typedData = try JSONDecoder().decode(EIP712TypedData.self, from: jsonString.data(using: .utf8)!)
+        debugPrint(typedData.encodeType(typedData.primaryType))
+        let digestData = try typedData.digestData()
+        debugPrint(digestData.toHexString())
+        XCTAssertEqual(digestData.toHexString(), "0x97230088997877d444f1b298862f3b915d2708dd5eb345a091ec89b60b7a9dec".stripHexPrefix())
+    }
+    
 }

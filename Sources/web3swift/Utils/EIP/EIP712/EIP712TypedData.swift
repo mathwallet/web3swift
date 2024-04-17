@@ -157,14 +157,14 @@ public extension EIP712TypedData {
         case "bool":
             abiType = .bool
             abiValue = (json.boolValue ?? false) as AnyObject
-        case _ where type.hasPrefix("int"):
+        case _ where NSPredicate(format:"SELF MATCHES %@", "^int\\d{0,}$").evaluate(with: type):
             guard let v = json.stringValue else {
                 throw Web3Error.processingError(desc: "Not solidity type")
             }
             let bits = UInt64(type.replacingOccurrences(of: "int", with: "")) ?? UInt64(256)
             abiType = .int(bits: bits)
             abiValue = v as AnyObject
-        case _ where type.hasPrefix("uint"):
+        case _ where NSPredicate(format:"SELF MATCHES %@", "^uint\\d{0,}$").evaluate(with: type):
             guard let v = json.stringValue else {
                 throw Web3Error.processingError(desc: "Not solidity type")
             }
@@ -183,7 +183,7 @@ public extension EIP712TypedData {
             }
             abiType = .bytes(length: 32)
             abiValue = EIP712Crypto.keccak256(Data(hex: v)) as AnyObject
-        case _ where type.hasPrefix("bytes"):
+        case _ where NSPredicate(format:"SELF MATCHES %@", "^bytes\\d{1,}$").evaluate(with: type):
             guard let v = json.stringValue?.stripHexPrefix() else {
                 throw Web3Error.processingError(desc: "Not solidity type")
             }
