@@ -154,7 +154,7 @@ public class WebsocketProvider: Web3Provider, IWebsocketProvider, WebSocketDeleg
         url = URL(string: endpointString)!
         delegate = wsdelegate
         attachedKeystoreManager = manager
-        socket = WebSocket(url: url)
+        socket = WebSocket(request: URLRequest(url: url))
         socket.delegate = self
     }
     
@@ -195,7 +195,7 @@ public class WebsocketProvider: Web3Provider, IWebsocketProvider, WebSocketDeleg
         url = URL(string: finalEndpoint)!
         delegate = wsdelegate
         attachedKeystoreManager = manager
-        socket = WebSocket(url: url)
+        socket = WebSocket(request: URLRequest(url: url))
         socket.delegate = self
     }
     
@@ -275,27 +275,28 @@ public class WebsocketProvider: Web3Provider, IWebsocketProvider, WebSocketDeleg
         }
     }
     
-    public func websocketDidReceiveMessage(socket: WebSocketClient, text: String) {
-        print("got some text: \(text)")
-        delegate.received(message: text)
-    }
-    
-    public func websocketDidReceiveData(socket: WebSocketClient, data: Data) {
-        print("got some data: \(data.count)")
-        delegate.received(message: data)
-    }
-    
-    public func websocketDidConnect(socket: WebSocketClient) {
-        print("websocket is connected")
-        websocketConnected = true
-    }
-    
-    public func websocketDidDisconnect(socket: WebSocketClient, error: Error?) {
-        print("websocket is disconnected with \(error?.localizedDescription ?? "no error")")
-        websocketConnected = false
-    }
-    
-    public func websocketDidReceivePong(socket: WebSocketClient, data: Data?) {
-        print("Got pong! Maybe some data: \(String(describing: data?.count))")
+    public func didReceive(event: WebSocketEvent, client: any WebSocketClient) {
+        switch event {
+        case .connected(_):
+            print("websocket is connected")
+            websocketConnected = true
+        case .disconnected(let reason, _):
+            print("websocket is disconnected with \(reason)")
+            websocketConnected = false
+        case .text(let text):
+            print("got some text: \(text)")
+            delegate.received(message: text)
+        case .binary(let data):
+            print("got some data: \(data.count)")
+            delegate.received(message: data)
+        case .pong(let data):
+            print("Got pong! Maybe some data: \(String(describing: data?.count))")
+        case .cancelled:
+            websocketConnected = false
+        case .error(let error):
+            websocketConnected = false
+        default:
+            print("other event", event)
+        }
     }
 }
