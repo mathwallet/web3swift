@@ -265,7 +265,7 @@ public struct TransactionReceipt: Decodable {
     public var contractAddress: EthereumAddress?
     public var cumulativeGasUsed: BigUInt
     public var gasUsed: BigUInt
-    public var effectiveGasPrice: BigUInt
+    public var effectiveGasPrice: BigUInt = BigUInt(0)
     public var logs: [EventLog]
     public var status: TXStatus
     public var logsBloom: EthereumBloomFilter?
