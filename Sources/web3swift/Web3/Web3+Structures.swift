@@ -265,6 +265,7 @@ public struct TransactionReceipt: Decodable {
     public var contractAddress: EthereumAddress?
     public var cumulativeGasUsed: BigUInt
     public var gasUsed: BigUInt
+    public var effectiveGasPrice: BigUInt
     public var logs: [EventLog]
     public var status: TXStatus
     public var logsBloom: EthereumBloomFilter?
@@ -284,6 +285,7 @@ public struct TransactionReceipt: Decodable {
         case contractAddress
         case cumulativeGasUsed
         case gasUsed
+        case effectiveGasPrice
         case logs
         case logsBloom
         case status
@@ -314,6 +316,8 @@ public struct TransactionReceipt: Decodable {
         guard let gasUsed = try decodeHexToBigUInt(container, key: .gasUsed) else {throw Web3Error.dataError}
         self.gasUsed = gasUsed
         
+        guard let effectiveGasPrice = try decodeHexToBigUInt(container, key: .effectiveGasPrice, allowOptional: true) else {throw Web3Error.dataError}
+        self.effectiveGasPrice = effectiveGasPrice
         
         let status = try decodeHexToBigUInt(container, key: .status, allowOptional: true)
         if (status == nil) {
