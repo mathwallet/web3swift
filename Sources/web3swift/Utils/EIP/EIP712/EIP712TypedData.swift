@@ -230,7 +230,7 @@ public extension EIP712TypedData {
             }
             parametrs.append(result)
         }
-        let encoded = parametrs.flatMap { $0.bytes }
+        let encoded = parametrs.flatMap { $0.byteArray }
         return Data(encoded)
     }
 }

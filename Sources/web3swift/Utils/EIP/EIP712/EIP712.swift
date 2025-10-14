@@ -142,7 +142,7 @@ public extension EIP712Hashable {
             guard result.count == 32 else { preconditionFailure("ABI encode error") }
             parametrs.append(result)
         }
-        let encoded = parametrs.flatMap { $0.bytes }
+        let encoded = parametrs.flatMap { $0.byteArray }
         return EIP712Crypto.keccak256(encoded)
     }
 }
@@ -158,6 +158,6 @@ struct EIP712Crypto {
     }
 
     static func keccak256(_ data: Data) -> Data {
-        keccak256(data.bytes)
+        keccak256(data.byteArray)
     }
 }

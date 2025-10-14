@@ -92,7 +92,7 @@ public class BIP32Keystore: AbstractKeystore {
     }
 
     public convenience init?(mnemonics: String, password: String = "web3swift", mnemonicsPassword: String = "", language: BIP39Language = BIP39Language.english, prefixPath: String = HDNode.defaultPathMetamaskPrefix, aesMode: String = "aes-128-cbc") throws {
-        guard var seed = BIP39.seedFromMmemonics(mnemonics, password: mnemonicsPassword, language: language) else {
+        guard var seed = BIP39.seedFromMnemonics(mnemonics, password: mnemonicsPassword, language: language) else {
             throw AbstractKeystoreError.noEntropyError
         }
         defer{
@@ -233,16 +233,16 @@ public class BIP32Keystore: AbstractKeystore {
         var aesCipher: AES?
         switch aesMode {
         case "aes-128-cbc":
-            aesCipher = try? AES(key: encryptionKey.bytes, blockMode: CBC(iv: IV.bytes), padding: .pkcs7)
+            aesCipher = try? AES(key: encryptionKey.byteArray, blockMode: CBC(iv: IV.byteArray), padding: .pkcs7)
         case "aes-128-ctr":
-            aesCipher = try? AES(key: encryptionKey.bytes, blockMode: CTR(iv: IV.bytes), padding: .pkcs7)
+            aesCipher = try? AES(key: encryptionKey.byteArray, blockMode: CTR(iv: IV.byteArray), padding: .pkcs7)
         default:
             aesCipher = nil
         }
         if aesCipher == nil {
             throw AbstractKeystoreError.aesError
         }
-        guard let encryptedKey = try aesCipher?.encrypt(data!.bytes) else {
+        guard let encryptedKey = try aesCipher?.encrypt(data!.byteArray) else {
             throw AbstractKeystoreError.aesError
         }
 //        let encryptedKeyData = Data(bytes:encryptedKey) Data(encryptedKey)
@@ -320,7 +320,7 @@ public class BIP32Keystore: AbstractKeystore {
             guard let passData = password.data(using: .utf8) else {
                 return nil
             }
-            guard let derivedArray = try? PKCS5.PBKDF2(password: passData.bytes, salt: saltData.bytes, iterations: c, keyLength: derivedLen, variant: hashVariant!).calculate() else {
+            guard let derivedArray = try? PKCS5.PBKDF2(password: passData.byteArray, salt: saltData.byteArray, iterations: c, keyLength: derivedLen, variant: hashVariant!).calculate() else {
                 return nil
             }
 //            passwordDerivedKey = Data(bytes:derivedArray)
@@ -353,15 +353,15 @@ public class BIP32Keystore: AbstractKeystore {
         var decryptedPK: Array<UInt8>?
         switch cipher {
         case "aes-128-ctr":
-            guard let aesCipher = try? AES(key: decryptionKey.bytes, blockMode: CTR(iv: IV.bytes), padding: .pkcs7) else {
+            guard let aesCipher = try? AES(key: decryptionKey.byteArray, blockMode: CTR(iv: IV.byteArray), padding: .pkcs7) else {
                 return nil
             }
-            decryptedPK = try aesCipher.decrypt(cipherText.bytes)
+            decryptedPK = try aesCipher.decrypt(cipherText.byteArray)
         case "aes-128-cbc":
-            guard let aesCipher = try? AES(key: decryptionKey.bytes, blockMode: CBC(iv: IV.bytes), padding: .pkcs7) else {
+            guard let aesCipher = try? AES(key: decryptionKey.byteArray, blockMode: CBC(iv: IV.byteArray), padding: .pkcs7) else {
                 return nil
             }
-            decryptedPK = try? aesCipher.decrypt(cipherText.bytes)
+            decryptedPK = try? aesCipher.decrypt(cipherText.byteArray)
         default:
             return nil
         }
