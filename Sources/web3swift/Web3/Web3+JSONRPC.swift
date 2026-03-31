@@ -24,16 +24,23 @@ public struct Counter {
 
 /// JSON RPC request structure for serialization and deserialization purposes.
 public struct JSONRPCrequest: Encodable {
-    public var jsonrpc: String = "2.0"
+    public var jsonrpc: String
     public var method: JSONRPCmethod?
     public var params: JSONRPCparams?
-    public var id: UInt64 = Counter.increment()
+    public var id: UInt64
     
     enum CodingKeys: String, CodingKey {
         case jsonrpc
         case method
         case params
         case id
+    }
+    
+    public init(jsonrpc: String = "2.0", method: JSONRPCmethod? = nil, params: JSONRPCparams? = nil, id: UInt64 = Counter.increment()) {
+        self.jsonrpc = jsonrpc
+        self.method = method
+        self.params = params
+        self.id = id
     }
     
     public func encode(to encoder: Encoder) throws {
@@ -264,8 +271,10 @@ public struct EventFilterParameters: Codable {
 
 /// Raw JSON RCP 2.0 internal flattening wrapper.
 public struct JSONRPCparams: Encodable{
-    public var params = [Any]()
-    
+    public var params: [Any]
+    public init(params: [Any] = [Any]()) {
+        self.params = params
+    }
     public func encode(to encoder: Encoder) throws {
         var container = encoder.unkeyedContainer()
         for par in params {
